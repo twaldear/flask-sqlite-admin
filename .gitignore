@@ -5,3 +5,4 @@ wp
 *.egg-info
 build
 dist
+.DS_Store
