@@ -19,7 +19,7 @@ sqliteAdminBP = sqliteAdminBlueprint(dbPath = '/path/to/your/sqlite.db')
 app.register_blueprint(sqliteAdminBP, url_prefix='/sqlite')	
 ```
 
-IMPORTANT NOTE: This package will only work if the first column of the table is a PRIMARY KEY
+IMPORTANT NOTE: This package will only work if the first column of a table is a PRIMARY KEY
 
 Navigate to /sqlite and you should see all of your sqlite tables in that database as tabs. Click the tab to view the table contents.
 * Click column header to sort column, click again to reverse sort
