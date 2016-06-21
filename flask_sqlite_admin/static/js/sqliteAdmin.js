@@ -138,7 +138,7 @@ $(document.body).on("click",".edit-save",function(e){
 	}
 	postData['id']=$(this).data('id')
 	postData['primaryKey']=$(this).data('primarykey')
-	postData['action']=$(this).data('action')
+	//postData['action']=$(this).data('action')
 	postData['table']=$(this).data('table')
 	
 	// pull post data from inputs
@@ -168,6 +168,7 @@ $(document.body).on("click",".edit-save",function(e){
 	}
 	
 	// post request
+	/*
 	$.post( 
 		window.location+'api', 
 		postData,
@@ -182,6 +183,26 @@ $(document.body).on("click",".edit-save",function(e){
 		},
 		"json"
 	)
+	.fail(function(d) {
+		console.log(d.responseText)
+		_tr.after(returnHTML(0,'An error occurred. Refer to console for more information'))
+	})
+	*/
+	$.ajax({
+		url: window.location+'api', 
+		type: $(this).data('method'),
+		dataType: "json",
+		data: postData,
+    	success: function(data) {
+			if (data.status==1){
+				returnHTML(1,data.message)
+				close_edit(_that)
+				staticUpdate()
+			} else {
+				returnHTML(0,data.error)
+			}
+		}
+	})
 	.fail(function(d) {
 		console.log(d.responseText)
 		_tr.after(returnHTML(0,'An error occurred. Refer to console for more information'))

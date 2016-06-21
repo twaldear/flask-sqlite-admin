@@ -1,5 +1,7 @@
 <div class="input-group margin4020"></div>
-
+{% if error %}
+<div class="alert alert-warning" role="alert">{{error}}</div>
+{% else %}
 <table class="table tablesorter table-hover">
   <thead class="header">
 	<tr>
@@ -39,12 +41,12 @@
 	  {% endif %}
 	  {% endfor %}
 	  <td class="w5">
-		<button class="btn btn-primary state-edit edit-save" data-action="edit" data-table="{{q['table']}}" data-id="{{row[data['primaryKey']]}}" data-primarykey="{{data['primaryKey']}}" data-toggle="tooltip" data-placement="top" title="Save edits">Save</button>
+		<button class="btn btn-primary state-edit edit-save" data-method="put" data-table="{{q['table']}}" data-id="{{row[data['primaryKey']]}}" data-primarykey="{{data['primaryKey']}}" data-toggle="tooltip" data-placement="top" title="Save edits">Save</button>
 	  </td>
 	  <td class="w5 text-muted wrench" data-placement="left" data-state="inactive" data-toggle="popover" data-content='
 		  <table class="table table-condensed table-hover table-popover">
 			<tr><td><span class="open-edit" data-table="{{q['table']}}" data-id="{{row[data['primaryKey']]}}"><span class="text-primary glyphicon glyphicon-pencil"></span> Edit</span></td></tr>
-			<tr><td><span class="state-edit edit-save" data-action="delete" data-table="{{q['table']}}" data-id="{{row[data['primaryKey']]}}" data-primarykey="{{data['primaryKey']}}"><span class="text-danger glyphicon glyphicon-trash"></span> Delete</span></td></tr>
+			<tr><td><span class="state-edit edit-save" data-method="delete" data-table="{{q['table']}}" data-id="{{row[data['primaryKey']]}}" data-primarykey="{{data['primaryKey']}}"><span class="text-danger glyphicon glyphicon-trash"></span> Delete</span></td></tr>
 		  </table>
 	  ' data-html="true">
 		<span class="glyphicon glyphicon-wrench"></span>
@@ -71,7 +73,7 @@
 	  {% endif %}
 	{% endfor %}
 	  <td class="w5">
-		<button class="btn btn-default edit-save" data-action="add" data-table="{{q['table']}}" data-primarykey="{{data['primaryKey']}}" data-toggle="tooltip" data-placement="top" title="Save edits">Save</button>
+		<button class="btn btn-default edit-save" data-method="post" data-table="{{q['table']}}" data-primarykey="{{data['primaryKey']}}" data-toggle="tooltip" data-placement="top" title="Save edits">Save</button>
 	  </td>
 	  <td>
 		<button type="button" class="close add-btn-close">
@@ -123,4 +125,6 @@
     
   </ul>
 </nav>
+{% endif %}
+
 {% endif %}

@@ -1,7 +1,9 @@
 import re
 from functools import wraps
 import types
-
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 def execRule(i):
   def do_assignment(to_func):
@@ -12,10 +14,11 @@ def execRule(i):
 class rules:
 	""" base rules applied to all modifications """
 	
-	def __init__(self,colData,postData,tables):
+	def __init__(self,colData,postData,tables,method):
 		self.colData = colData
 		self.postData = postData
-		self.actions = ['add','edit','delete']
+		self.method = method
+		self.methods = ['GET','POST','PUT','DELETE']
 		self.tables = tables
 		if self.colData['name'] in self.postData:
 			self.value = self.postData[self.colData['name']]
@@ -31,15 +34,15 @@ class rules:
 	@execRule(2)
 	def validAction(self):
 		""" check if action is valid """
-		if 'action' not in self.postData:
-			raise ValueError('no action value provided')
-		elif self.postData['action'] not in self.actions:
-			raise ValueError('invalid action `%s`' % self.postData['action'])
+		if self.method is None:
+			raise ValueError('no method in request')
+		elif self.method not in self.methods:
+			raise ValueError('invalid method `%s`' % self.method)
 
 	@execRule(3)
 	def idRequired(self):
 		""" check if id parameter passed for edit/delete functions """
-		if self.postData['action'] == 'edit' or self.postData['action'] == 'delete':
+		if self.method == 'put' or self.method == 'delete':
 			if 'id' not in self.postData:
 				raise ValueError('Request must include an id')
 
@@ -74,7 +77,6 @@ class sqliteAdminFunctions:
 	
 	def __init__(self,con,tables=[],extraRules=[]):
 		self.db = con
-		self.actions = ['add','edit','delete']
 		self.extraRules = extraRules
 		self.tables = self.tableList(tables)
 
@@ -82,7 +84,11 @@ class sqliteAdminFunctions:
 		""" function to return sqlite results in dict """
 		d = {}
 		for idx, col in enumerate(cursor.description):
-			d[col[0]] = row[idx]
+			try:
+				str(row[idx]).decode('utf-8').encode('utf-8')
+				d[col[0]] = row[idx]
+			except:
+				d[col[0]] = "invalid byte"
 		return d
 	
 	def tableList(self,tables):
@@ -121,7 +127,7 @@ class sqliteAdminFunctions:
 		cur = self.db.execute('PRAGMA table_info(%s)' % (table) )
 		return [{'name':row[1],'dataType':row[2],'notNull':row[3],'primaryKey':row[5]} for row in cur.fetchall()]
 
-	def checkValid(self,q):
+	def checkValid(self,q,method):
 		""" validate admin input """
 
 		if 'table' not in q:
@@ -132,7 +138,7 @@ class sqliteAdminFunctions:
 			for col in self.tableSchemas(q['table']):
 
 				# iterate through rules
-				r = rules(col,q,self.tables) # instantiate rules objecy
+				r = rules(col,q,self.tables,method) # instantiate rules objecy
 				if len(self.extraRules)>0: 
 					# add extra rules
 					for i,x in enumerate(self.extraRules):
@@ -151,35 +157,36 @@ class sqliteAdminFunctions:
 					except Exception, e:
 						raise
 								
-	def editTables(self,q):			
+	def editTables(self,q,method):			
 		""" edit tables """
+		qString = ''
+		qParams = []
 		
 		# validate input
-		self.checkValid(q)
+		self.checkValid(q,method)
 
 		# create copy of request
 		q2 = q.copy()
 		del q2['table']
-		del q2['action']
 		
 		# edit
 		ret = ''
-		if q['action'] == 'edit':
+		if method == 'PUT':
 			del q2['id']
 			del q2['primaryKey']
 			
 			qString = 'update %s set %s where %s=?' % (q['table'],', '.join("%s=?" %p for p in q2.keys()),q['primaryKey'])
 			qParams = [v for k,v in q2.items()]
-			qParams.append(q['id'])
+			qParams.append(q[q['primaryKey']])
 		# add
-		elif q['action'] == 'add':
+		elif method == 'POST':
 			del q2['primaryKey']
 			
 			qString = 'insert into %s (%s) values (%s)' % (q['table'],','.join(q2.keys()),','.join("?" for p in q2.keys()) )
 			qParams = [v for k,v in q2.items()]
 			ret = '<a href="" class="alert-link">Refresh Page</a>'
 		# delete
-		elif q['action'] == 'delete':
+		elif method == 'DELETE':
 			qString = 'delete from %s where %s=?' % (q['table'],q['primaryKey'])
 			qParams = [q['id']]
 			ret = 'Row deleted'

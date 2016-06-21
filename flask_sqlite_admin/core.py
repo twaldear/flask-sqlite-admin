@@ -34,7 +34,7 @@ def sqliteAdminBlueprint(dbPath,bpName='sqliteAdmin',tables=[],title='sqlite Adm
 		else:
 			return render_template('sqlite.html',res=res,title=title,h1=h1,baseLayout=baseLayout,bpName=bpName)	
 
-	@sqlite.route('/api',methods=['GET','POST'])
+	@sqlite.route('/api',methods=['GET','POST','PUT','DELETE'])
 	@decorator
 	@sh.wrapper()
 	def api():
@@ -45,12 +45,15 @@ def sqliteAdminBlueprint(dbPath,bpName='sqliteAdmin',tables=[],title='sqlite Adm
 		# GET request
 		if request.method == 'GET':
 			q = request.args			
-			res = sf.tableContents(request.args['table'],request.args['sort'],request.args['dir'],request.args['offset'])
-			return render_template('sqlite_ajax.html',data=res,title=title,h1=h1,baseLayout=baseLayout,bpName=bpName,q=q,qJson=json.dumps(q))
-		# POST request
-		else:		
 			try:
-				res = {'status':1,'message':sf.editTables(request.form)}
+				res = sf.tableContents(request.args['table'],request.args['sort'],request.args['dir'],request.args['offset'])
+				return render_template('sqlite_ajax.html',data=res,title=title,h1=h1,baseLayout=baseLayout,bpName=bpName,q=q,qJson=json.dumps(q))
+			except Exception, e:
+				return render_template('sqlite_ajax.html',error=e.message)
+		# POST request
+		else:
+			try:
+				res = {'status':1,'message':sf.editTables(request.form,request.method)}
 			except Exception, e:
 				res = {'status':0,'error':e.message}
 			return json.dumps(res)	
