@@ -3,9 +3,9 @@ from setuptools import setup
 
 setup(
   name = 'flask-sqlite_admin',
-  packages = ['sqlite_admin'],
+  packages = ['flask_sqlite_admin'],
   include_package_data = True,
-  version = '0.5',
+  version = '0.2',
   description = 'SQLite DB Management Blueprint for Flask Applications',
   long_description = ('Use this blueprint to have a functional CRUD tool to '
                       'manage your sqlite db directly for small applications.'
